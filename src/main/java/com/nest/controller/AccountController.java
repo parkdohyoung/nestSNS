@@ -37,8 +37,8 @@ public class AccountController {
         return ResponseEntity.ok(Map.of("exists", duplicate));
     }
     @GetMapping("/duplicate-name")
-    public ResponseEntity<Map<String,Boolean>> duplicateName(@RequestParam String email){
-        boolean duplicate = accountService.isDuplicateEmail(email);
+    public ResponseEntity<Map<String,Boolean>> duplicateName(@RequestParam String name){
+        boolean duplicate = accountService.isDuplicateEmail(name);
         return ResponseEntity.ok(Map.of("exists", duplicate));
     }
     @PostMapping("/join")
@@ -65,17 +65,26 @@ public class AccountController {
 
     @PostMapping("/edit")
     public ResponseEntity<?> edit(HttpServletRequest request,
-                                  @RequestBody ProfileDto profileDto,
-                                  @RequestParam(value = "file", required = false)MultipartFile file){
-
+                                  @RequestBody ProfileDto profileDto){
         Long accountId = (Long) request.getAttribute("accountId");
 
         if(!accountId.equals(profileDto.getId())){
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error",ErrorMessages.UNAUTHORIZED_ACCESS));
         }
 
-        return ResponseEntity.ok(accountService.updateAccount(profileDto, file));
+        return ResponseEntity.ok(accountService.updateAccount(profileDto));
     }
+
+    @PostMapping("/edit/profileImage")
+    public ResponseEntity<?> profilImage(@PathVariable Long accountId, HttpServletRequest request , @RequestParam(value = "file") MultipartFile file){
+        Long accountIdByToken = (Long) request.getAttribute("accountId");
+        if(!accountId.equals(accountIdByToken)){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error",ErrorMessages.UNAUTHORIZED_ACCESS));
+        }
+        return ResponseEntity.ok(accountService.updateProfileImage(accountId, file));
+
+    }
+
 
     @PostMapping("/withdraw")
     public ResponseEntity<?> withdrawAccount(@RequestBody ProfileDto profileDto, HttpServletRequest request){

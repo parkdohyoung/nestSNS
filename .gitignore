@@ -19,6 +19,8 @@ bin/
 
 ### IntelliJ IDEA ###
 application.properties
+*.OpenApiConfig
+*.WebConfig
 /src/main/resources
 .idea
 *.iws

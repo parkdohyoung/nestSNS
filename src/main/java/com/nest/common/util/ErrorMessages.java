@@ -20,4 +20,5 @@ public class ErrorMessages {
         public static final String UNAUTHORIZED_ACCESS = "권한이 없습니다.";
         public static final String INVALID_NAME = "이미 사용중인 닉네임입니다.";
         public static final String KEYWORD_NOT_FOUND = "키워드를 찾을수 없습니다.";
+        public static final String ATTACHED_FILE_ISNULL ="파일이 첨부되지 않았습니다.";
 }

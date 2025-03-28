@@ -19,6 +19,9 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -136,22 +139,36 @@ public class AccountService {
 
     //계정 정보 수정
     @Transactional
-    public ProfileDto updateAccount(ProfileDto profileDto, @Nullable MultipartFile file)  {
+    public ProfileDto updateAccount(ProfileDto profileDto)  {
         Account account = getAccountById(profileDto.getId());
 
-        if(file != null && !file.isEmpty()){
-                String savedPath = fileStorageService.saveProfileImage(account.getEmail(), file);
-                account.setProfileImgPath(savedPath);
-            }
             if(profileDto.getName() != null ){
                 account.setName(profileDto.getName());
             }
             if(profileDto.getProfileMessage() != null ){
                 account.setProfileMessage(profileDto.getProfileMessage());
             }
+            accountRepository.save(account);
             return accountMapper.toProfileDto(account);
 
     }
+
+    @Transactional
+    public ProfileDto updateProfileImage(Long accountId, MultipartFile file) {
+        if(file == null && file.isEmpty()){
+            throw new IllegalArgumentException(ErrorMessages.ATTACHED_FILE_ISNULL);
+        }
+        Account account = getAccountById(accountId);
+        String savedPath = fileStorageService.saveProfileImage(account.getEmail(), file);
+        account.setProfileImgPath(savedPath);
+        accountRepository.save(account);
+
+        return accountMapper.toProfileDto(account);
+
+    }
+
+
+
 
 
     //회원 탈퇴
@@ -164,6 +181,9 @@ public class AccountService {
 
     public boolean loginAuthenticate(String email, String rawPassword){
         Account findAccount = getAccountByEmail(email);
+        if(!findAccount.isVerified()){
+            return false;
+        }
         if(passwordUtil.matches(rawPassword, findAccount.getPassword())){
             LoginHistory loginHistory = new LoginHistory();
             loginHistory.setAccount(findAccount);
