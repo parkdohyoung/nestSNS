@@ -32,6 +32,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleGeneralException(Exception ex) {
         log.error("서버 예외 발생", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "서버 오류가 발생했습니다.", "details", ex.getMessage()));
+                .body(Map.of("error", "서버에서 오류가 발생했습니다.", "details", ex.getMessage()));
     }
 }

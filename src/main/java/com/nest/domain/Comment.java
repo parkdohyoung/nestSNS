@@ -35,6 +35,8 @@ public class Comment extends BasicEntity implements Likeable {
 
     private Long likeCount;
 
+
+
     @Override
     public void incrementLikeCount(){
         if(this.likeCount == null ){

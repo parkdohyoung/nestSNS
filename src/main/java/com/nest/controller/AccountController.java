@@ -4,6 +4,8 @@ import com.nest.common.util.ErrorMessages;
 import com.nest.common.util.JwtUtil;
 import com.nest.dto.*;
 import com.nest.service.AccountService;
+import com.nest.service.FollowService;
+import com.nest.service.PostService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
@@ -23,12 +25,15 @@ import java.util.Map;
 public class AccountController {
 
     private final AccountService accountService;
+    private final FollowService followService;
     private final JwtUtil jwtUtil;
 
     @Autowired
-    public AccountController(AccountService accountService, JwtUtil jwtUtil){
+    public AccountController(AccountService accountService, FollowService followService, JwtUtil jwtUtil){
         this.accountService =accountService;
         this.jwtUtil = jwtUtil;
+        this.followService = followService;
+
     }
 
     @GetMapping("/duplicate-email")
@@ -76,7 +81,7 @@ public class AccountController {
     }
 
     @PostMapping("/edit/profileImage")
-    public ResponseEntity<?> profilImage(@PathVariable Long accountId, HttpServletRequest request , @RequestParam(value = "file") MultipartFile file){
+    public ResponseEntity<?> profilImage(@RequestParam Long accountId, HttpServletRequest request , @RequestParam(value = "file") MultipartFile file){
         Long accountIdByToken = (Long) request.getAttribute("accountId");
         if(!accountId.equals(accountIdByToken)){
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error",ErrorMessages.UNAUTHORIZED_ACCESS));
@@ -88,14 +93,18 @@ public class AccountController {
 
     @PostMapping("/withdraw")
     public ResponseEntity<?> withdrawAccount(@RequestBody ProfileDto profileDto, HttpServletRequest request){
-
+        log.info("회원 탈퇴 요청, EMail : {}", profileDto.getEmail());
         Long accountId = (Long) request.getAttribute("accountId");
 
         if(!accountId.equals(profileDto.getId())){
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", ErrorMessages.UNAUTHORIZED_ACCESS));
         }
-            accountService.deleteAccount(profileDto);
-            return ResponseEntity.ok(Map.of("message","감사합니다. 탈퇴가 완료 되었습니다."));
+
+        //팔로우 취소
+        followService.myFollowingList(accountId)
+                .forEach(follow -> {followService.unfollow(accountId,follow.getId());});
+        accountService.withDrawAccount(profileDto);
+        return ResponseEntity.ok(Map.of("message","감사합니다. 탈퇴가 완료 되었습니다."));
     }
 
     @PostMapping("/login")

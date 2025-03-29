@@ -1,5 +1,6 @@
 package com.nest.dto;
 
+import com.nest.domain.AccountStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,4 +18,6 @@ public class ProfileDto {
     private String email;
     private String profileImgPath;
     private String profileMessage;
+    private AccountStatus status ;
+
 }

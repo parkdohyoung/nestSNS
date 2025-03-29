@@ -2,6 +2,7 @@ package com.nest.dto;
 
 
 import com.nest.domain.Account;
+import com.nest.domain.AccountStatus;
 import com.nest.domain.Post;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,4 +24,5 @@ public class AccountDto {
     private boolean verified =false ;
     private LocalDateTime loginDateTime;
     private List<Post> post;
+    private AccountStatus status ;
 }

@@ -11,6 +11,6 @@ public class FormatDate {
         if(dateTime == null){
             return "날짜없음";
         }
-        return dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        return dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH-mm-ss"));
     }
 }

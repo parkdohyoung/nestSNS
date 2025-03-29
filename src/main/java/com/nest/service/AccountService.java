@@ -3,6 +3,7 @@ package com.nest.service;
 import com.nest.common.util.ErrorMessages;
 import com.nest.common.util.PasswordUtil;
 import com.nest.domain.Account;
+import com.nest.domain.AccountStatus;
 import com.nest.domain.LoginHistory;
 import com.nest.dto.ProfileDto;
 import com.nest.dto.mapper.AccountMapper;
@@ -12,7 +13,6 @@ import com.nest.repository.LoginHistoryRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.lang.Nullable;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -20,12 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 
@@ -34,8 +30,6 @@ import java.util.UUID;
 public class AccountService {
 
     private final AccountMapper accountMapper ;
-    @Value("${file.default-dir}")
-    private String defaultDir;
 
     @Value("${app.base-url}")
     private String baseUrl;
@@ -52,14 +46,13 @@ public class AccountService {
                           LoginHistoryRepository loginHistoryRepository,
                           AccountMapper accountMapper,
                           PasswordUtil passwordUtil,
-                          FileStorageService fileStorageService) {
+                          FileStorageService fileStorageService,
+                          FollowService followService) {
         this.accountRepository = accountRepository;
         this.loginHistoryRepository = loginHistoryRepository;
         this.passwordUtil = passwordUtil;
         this.accountMapper = accountMapper;
         this.fileStorageService = fileStorageService;
-
-
     }
 
 
@@ -132,6 +125,7 @@ public class AccountService {
 
     private boolean activateAccount(Account account) {
         account.setVerified(true); // 계정 상태 업데이트
+        account.setStatus(AccountStatus.ACTIVE);
         accountRepository.save(account); // 변경 사항 저장
         return true;
     }
@@ -173,15 +167,30 @@ public class AccountService {
 
     //회원 탈퇴
     @Transactional
-    public void deleteAccount(ProfileDto profileDto) {
+    public void withDrawAccount(ProfileDto profileDto) {
+
+        log.info("계정 삭제 요청: {}", profileDto.getEmail());
+
         Account account = getAccountByEmail(profileDto.getEmail());
-        log.info("계정 삭제 요청: {}", account);
-        accountRepository.deleteById(account.getId());
+        account.setName("탈퇴한 사용자");
+        account.setVerified(false);
+        account.setProfileMessage("");
+        account.setProfileImgPath("");
+        account.setEmail("deleted_account_<"+profileDto.getEmail()+">");
+        accountRepository.save(account);
+
+        account.setStatus(AccountStatus.DELETED);
+
+        accountRepository.save(account);
+
     }
 
     public boolean loginAuthenticate(String email, String rawPassword){
         Account findAccount = getAccountByEmail(email);
         if(!findAccount.isVerified()){
+            return false;
+        }
+        if(!findAccount.getStatus().equals(AccountStatus.ACTIVE)){
             return false;
         }
         if(passwordUtil.matches(rawPassword, findAccount.getPassword())){

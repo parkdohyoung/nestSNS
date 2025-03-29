@@ -24,17 +24,12 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http.csrf(csrf -> csrf.disable()) // CSRF 비활성화
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/swagger-ui/**","/v3/api-docs/**").permitAll()
-                        //회원가입관련 URL
-                        .requestMatchers("/api/account/join","/api/account/duplicate-email", "/api/account/duplicate-name", "/api/auth/**").permitAll()
-                        //Login 관련 URL
+                        //로그인
                         .requestMatchers("/api/account/login").permitAll()
+                        //회원가입
+                        .requestMatchers("/api/account/join","/api/account/duplicate-check", "/api/auth/**").permitAll()
                         .anyRequest().authenticated())
-                .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint((request, response, authException) -> {
-                            response.sendRedirect("api/account/login");
-                        }))
-               .addFilterBefore(new JwtFilter(jwtUtil), SecurityContextPersistenceFilter.class) // JWT 필터 추가
+                .addFilterBefore(new JwtFilter(jwtUtil), SecurityContextPersistenceFilter.class) // JWT 필터 추가
                 .build();
     }
 
@@ -42,5 +37,6 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(); // 비밀번호 암호화
     }
+
 
 }

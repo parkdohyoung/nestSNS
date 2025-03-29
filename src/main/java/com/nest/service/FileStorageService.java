@@ -1,5 +1,6 @@
 package com.nest.service;
 
+import com.nest.common.util.FormatDate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -18,11 +19,12 @@ import java.time.LocalDateTime;
 public class FileStorageService {
     @Value("${file.default-dir}")
     private String defaultDir;
+    FormatDate formatDate = new FormatDate();
 
     public String saveProfileImage(String email, MultipartFile file) {
         try {
             byte[] bytes = file.getBytes();
-            String fileName = email + "/profile/" + file.getOriginalFilename() + "_" + LocalDateTime.now();
+            String fileName = email + "/profile/" + formatDate.formatDate(LocalDateTime.now())+ "_" + file.getOriginalFilename()  ;
             Path path = Paths.get(defaultDir, fileName);
             Files.createDirectories(path.getParent()); // 폴더가 없는 경우 생성
             Files.write(path, bytes); // 파일 저장
@@ -37,7 +39,7 @@ public class FileStorageService {
         try {
             byte[] bytes = file.getBytes();
             String now = LocalDateTime.now().toString();
-            String fileName = email + "/post/"  + now.replace(":","-")+ "_"+ file.getOriginalFilename();
+            String fileName = email + "/post/"  + formatDate.formatDate(LocalDateTime.now())+ "_"+ file.getOriginalFilename();
             Path path = Paths.get(defaultDir, fileName);
             Files.createDirectories(path.getParent());
             Files.write(path,bytes);
