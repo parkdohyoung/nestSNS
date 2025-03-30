@@ -56,17 +56,13 @@ public class PostService {
     }
 
     @Transactional
-    public PostDto createPost(Long accountId ,String message, @Nullable MultipartFile file){
+    public PostDto createPost(Long accountId ,@Nullable String message){
         Account account = findAccountById(accountId);
         Post post = new Post();
         post.setAccount(account);
         post.setMessage(message);
         String email = account.getEmail();
 
-        if(file!= null && !file.isEmpty()) {
-            String savedPath = fileStorageService.savePostImage(email, file);
-            post.setImagePath(savedPath);
-        }
         Post savedPost = postRepository.save(post);
 
         List<String> keywords = keywordService.extractKeyword(message);
@@ -81,34 +77,45 @@ public class PostService {
     }
 
     @Transactional
-    public PostDto updatePost( Long postId, Long accountId ,String message, @Nullable MultipartFile file){
+    public PostDto updatePost( Long postId, Long accountId ,String message){
         Post post =  postRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException(ErrorMessages.POST_NOT_FOUND));
         Account account = findAccountById(accountId);
         post.setAccount(account);
         post.setMessage(message);
 
         String email = account.getEmail();
-        String oldImagePath = post.getImagePath();
-
-        if(file!= null && !file.isEmpty()){
-            log.info("file ={}", file.getOriginalFilename());
-            if(oldImagePath != null){
-                fileStorageService.deletePostImage(post.getImagePath());
-            }
-            String savedPath = fileStorageService.savePostImage(email, file);
-            post.setImagePath(savedPath);
-        }else if(oldImagePath != null) {
-            fileStorageService.deletePostImage(post.getImagePath());
-            post.setImagePath(null);
-        }
 
         List<String> keywords = keywordService.extractKeyword(message);
         keywordService.updateKeywords(keywords,post,null);
 
-
-
         return postMapper.toPostDto(postRepository.save(post));
 
+    }
+
+    @Transactional
+    public PostDto editImage(@Nullable Long postId, Long accountId ,MultipartFile file){
+        Account account = findAccountById(accountId);
+
+        Post post = (postId == null)?
+                new Post(account)
+                :postRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException(ErrorMessages.POST_NOT_FOUND));
+        String email = account.getEmail();
+
+        String savedPath = fileStorageService.savePostImage(email, file);
+        post.setImagePath(savedPath);
+
+        return postMapper.toPostDto(postRepository.save(post));
+    }
+
+    @Transactional
+    public PostDto deleteImage(Long postId){
+        Post post = postRepository.findById(postId).orElseThrow(() -> new IllegalArgumentException(ErrorMessages.POST_NOT_FOUND));
+
+        fileStorageService.deletePostImage(post.getImagePath());
+
+        post.setImagePath("");
+
+        return postMapper.toPostDto(postRepository.save(post));
     }
 
 

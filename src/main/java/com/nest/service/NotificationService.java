@@ -48,8 +48,8 @@ public class NotificationService {
 
             Notification notification = new Notification();
             String content = (post!= null)?
-                    sender+ "님이 게시물에서 "+accountName+"님을 언급하였습니다. : "+ post.getMessage():
-                    sender+"님이 댓글에서 "+accountName+"님을 언급하였습니다. : " + comment.getCommentMessage();
+                    sender.getName()+ "님이 게시물에서 "+accountName+"님을 언급하였습니다. : "+ post.getMessage():
+                    sender.getName() +"님이 댓글에서 "+accountName+"님을 언급하였습니다. : " + comment.getCommentMessage();
 
             notification.setContent(content);
             notification.setSender(sender);
@@ -62,7 +62,7 @@ public class NotificationService {
     }
 
     public Page<Notification> getUnreadNotification(Long accountId, int size, int page) {
-        Page<Notification> notificationPage = notificationRepository.findByAccountId(accountId, PageRequest.of(page, size));
+        Page<Notification> notificationPage = notificationRepository.findByAccountIdAndCheckedIsFalse(accountId, PageRequest.of(page, size));
         return notificationPage;
     }
 

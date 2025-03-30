@@ -32,6 +32,10 @@ public class Post extends BasicEntity implements Likeable {
         return this.account != null && this.account.getId().equals(accountId);
     }
 
+    public Post(Account account) {
+        this.account = account;
+    }
+
     @Override
     public void incrementLikeCount(){
         if(this.likeCount == null ){

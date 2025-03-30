@@ -185,22 +185,22 @@ public class AccountService {
 
     }
 
-    public boolean loginAuthenticate(String email, String rawPassword){
-        Account findAccount = getAccountByEmail(email);
-        if(!findAccount.isVerified()){
-            return false;
+    public void loginAuthenticate(String email, String rawPassword){
+        Account findAccount = accountRepository.findByEmail(email).
+                orElseThrow(()-> new IllegalArgumentException(ErrorMessages.WRONG_PASSWORD));
+        if(!findAccount.isVerified() || !findAccount.getStatus().equals(AccountStatus.ACTIVE)){
+            log.info("계정 인증 여부 : {}", findAccount.isVerified());
+            log.info("계정 상태 : {}", findAccount.getStatus());
+
+            throw new IllegalArgumentException("인증 되지 않았거나 , 사용할 수 없는 계정입니다. ");
         }
-        if(!findAccount.getStatus().equals(AccountStatus.ACTIVE)){
-            return false;
+        if(!passwordUtil.matches(rawPassword, findAccount.getPassword())){
+            throw new IllegalArgumentException(ErrorMessages.WRONG_PASSWORD);
         }
-        if(passwordUtil.matches(rawPassword, findAccount.getPassword())){
-            LoginHistory loginHistory = new LoginHistory();
-            loginHistory.setAccount(findAccount);
-            loginHistory.setLoginDateTime(LocalDateTime.now());
-            loginHistoryRepository.save(loginHistory);
-            return true;
-        }
-        return false;
+        LoginHistory loginHistory = new LoginHistory();
+        loginHistory.setAccount(findAccount);
+        loginHistory.setLoginDateTime(LocalDateTime.now());
+        loginHistoryRepository.save(loginHistory);
     }
 
     private Account getAccountByEmail(String email) {

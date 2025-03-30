@@ -28,15 +28,15 @@ public class SavedPostController {
         return ResponseEntity.ok(savedPostService.getSavedPost(accountId, page, size));
     }
 
-    @PostMapping("/add/{postId}")
-    public ResponseEntity<String> addSavedPost(@PathVariable Long postId, HttpServletRequest request){
+    @PostMapping("/add")
+    public ResponseEntity<String> addSavedPost(@RequestParam Long postId, HttpServletRequest request){
         Long accountId = (Long) request.getAttribute("accountId");
         savedPostService.addSavedPost(accountId, postId);
         return ResponseEntity.ok("저장하였습니다.");
     }
 
-    @DeleteMapping("/delete/{postId}")
-    public ResponseEntity<String> deleteSavedPost(@PathVariable Long postId, HttpServletRequest request){
+    @DeleteMapping("/delete")
+    public ResponseEntity<String> deleteSavedPost(@RequestParam Long postId, HttpServletRequest request){
         Long accountId = (Long) request.getAttribute("accountId");
         savedPostService.removeSavedPost(accountId,postId);
         return ResponseEntity.ok("저장된 포스트 삭제하였습니다.");

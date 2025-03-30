@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
-    @Query("SELECT n FROM Notification n WHERE n.receiver.id = :accountId ORDER BY n.createDate DESC")
-    Page<Notification> findByAccountId(@Param("accountId") Long accountId, Pageable pageable);
+    @Query("SELECT n FROM Notification n WHERE n.receiver.id = :accountId and n.checked = false ORDER BY n.createDate DESC")
+    Page<Notification> findByAccountIdAndCheckedIsFalse(@Param("accountId") Long accountId, Pageable pageable);
 
 }

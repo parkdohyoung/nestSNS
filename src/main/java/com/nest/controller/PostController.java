@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Map;
 
 @Slf4j
@@ -72,10 +73,9 @@ public class PostController {
 
     @PostMapping("/new")
     public ResponseEntity<PostDto> newPost(@RequestBody PostDto postDto,
-                                           @RequestParam(required = false) MultipartFile image,
-                                           HttpServletRequest request){
+                                           HttpServletRequest request) throws IOException {
         Long accountId = (Long) request.getAttribute("accountId");
-        return ResponseEntity.ok(postService.createPost(accountId, postDto.getMessage(), image));
+        return ResponseEntity.ok(postService.createPost(accountId, postDto.getMessage()));
     }
 
 
@@ -105,22 +105,49 @@ public class PostController {
         if(!accountId.equals(originPostDto.getAccountId())){
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", ErrorMessages.UNAUTHORIZED_ACCESS));
         }else{
-            postService.updatePost(postId, accountId, postDto.getMessage(), image);
+            postService.updatePost(postId, accountId, postDto.getMessage());
             return ResponseEntity.ok(Map.of("message","포스트가 정상 저장 되었습니다."));
         }
     }
 
-    @DeleteMapping("/delete/{postId}")
-    public ResponseEntity<?> deletePost(@PathVariable Long postId, HttpServletRequest request){
+    @PostMapping("/edit/image")
+    public ResponseEntity<?> editPostImage(@RequestParam(required = false) Long postId,
+                                           @RequestParam("image") MultipartFile image ,
+                                           HttpServletRequest request){
+        Long accountId = (Long) request.getAttribute("accountId");
+
+        Long ValidAccountId = (postId == null) ? accountId : postService.findPostById(postId).getAccountId() ;
+        if(!accountId.equals(ValidAccountId)){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", ErrorMessages.UNAUTHORIZED_ACCESS));
+        }
+        PostDto savedPostDto = postService.editImage(postId, accountId, image);
+        return ResponseEntity.ok(savedPostDto);
+    }
+
+
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<?> deletePost(@RequestParam Long postId, HttpServletRequest request){
         Long accountId = (Long) request.getAttribute("accountId");
         PostDto postDto = postService.findPostById(postId);
         if(!accountId.equals(postDto.getAccountId())){
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", ErrorMessages.UNAUTHORIZED_ACCESS));
-        }else{
+        }
         postService.deletePost(postId);
             return ResponseEntity.ok(Map.of("message","포스트가 정상 삭제 되었습니다."));
-        }
     }
+    @DeleteMapping("/delete/image")
+    public ResponseEntity<?> deletePostImage(@RequestParam Long postId, HttpServletRequest request){
+        Long accountId = (Long) request.getAttribute("accountId");
+        PostDto postDto = postService.findPostById(postId);
+        if(!accountId.equals(postDto.getAccountId())){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", ErrorMessages.UNAUTHORIZED_ACCESS));
+        }
+        postService.deleteImage(postId);
+            return ResponseEntity.ok(Map.of("message","이미지가 정상 삭제 되었습니다."));
+    }
+
+
 }
 
 

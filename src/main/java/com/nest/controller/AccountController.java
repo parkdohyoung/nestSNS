@@ -109,20 +109,10 @@ public class AccountController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDto loginDto ){
-        try {
-            boolean isAuthenticate = accountService.loginAuthenticate(loginDto.getEmail(), loginDto.getPassword());
-
-            if(isAuthenticate){
-                Long idByEmail = accountService.getIdByEmail(loginDto.getEmail());
-                String token = jwtUtil.generateToken(idByEmail, loginDto.getEmail());
-                return ResponseEntity.ok(Map.of("token",token));
-            }else {
-               return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error",ErrorMessages.WRONG_PASSWORD));
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", ErrorMessages.INTERNAL_ERROR));
-        }
-
+        accountService.loginAuthenticate(loginDto.getEmail(), loginDto.getPassword());
+        Long idByEmail = accountService.getIdByEmail(loginDto.getEmail());
+        String token = jwtUtil.generateToken(idByEmail, loginDto.getEmail());
+        return ResponseEntity.ok(Map.of("token",token));
     }
 
 }
