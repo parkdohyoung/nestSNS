@@ -34,15 +34,15 @@ public class FollowController {
             return ResponseEntity.ok(profileDtos);
     }
 
-    @PostMapping("/{followingId}")
-    public ResponseEntity<?> followAdd(@PathVariable Long followingId, HttpServletRequest request ){
+    @PostMapping("/")
+    public ResponseEntity<?> followAdd(@RequestParam Long followingId, HttpServletRequest request ){
         Long accountId = (Long) request.getAttribute("accountId");
         followService.follow(accountId,followingId);
         return ResponseEntity.ok(Map.of("message","팔로우하였습니다."));
     }
 
     @PostMapping("/unfollow/{followingId}")
-    public ResponseEntity<?> unfollow(@PathVariable Long followingId, HttpServletRequest request){
+    public ResponseEntity<?> unfollow(@RequestParam Long followingId, HttpServletRequest request){
         Long accountId = (Long) request.getAttribute("accountId");
         followService.unfollow(accountId,followingId);
         return ResponseEntity.ok(Map.of("message","언팔로우하였습니다."));

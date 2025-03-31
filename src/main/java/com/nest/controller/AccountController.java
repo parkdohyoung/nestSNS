@@ -6,6 +6,7 @@ import com.nest.dto.*;
 import com.nest.service.AccountService;
 import com.nest.service.FollowService;
 import com.nest.service.PostService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequestMapping("/api/account")
+@Tag( name ="회원관련 API" , description = "회원가입, 수정 조회등 API 명세서 ")
 public class AccountController {
 
     private final AccountService accountService;

@@ -24,6 +24,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http.csrf(csrf -> csrf.disable()) // CSRF 비활성화
                 .authorizeHttpRequests(auth -> auth
+                        //swagger
+                        .requestMatchers("/swagger-ui/**","/v3/api-docs").permitAll()
                         //로그인
                         .requestMatchers("/api/account/login").permitAll()
                         //회원가입

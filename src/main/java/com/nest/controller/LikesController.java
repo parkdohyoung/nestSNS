@@ -1,6 +1,7 @@
 package com.nest.controller;
 
 import com.nest.common.util.ErrorMessages;
+import com.nest.domain.TargetType;
 import com.nest.dto.LikesDto;
 import com.nest.service.LikesService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,21 +25,30 @@ public class LikesController {
         this.likesService = likesService;
     }
 
+    private Long accountId;
+    private Long targetId;
+    private TargetType targetType;
+    private boolean isIncrease;
+
     @PostMapping()
-    public ResponseEntity<?> like(@RequestBody LikesDto likesDto, HttpServletRequest request){
+    public ResponseEntity<?> like(@RequestParam Long targetId ,
+                                  @RequestParam TargetType targetType ,
+                                  @RequestParam Boolean isIncrease,
+                                  HttpServletRequest request){
 
         Long accountId = (Long) request.getAttribute("accountId");
 
-        if(!accountId.equals(likesDto.getAccountId())){
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error",ErrorMessages.UNAUTHORIZED_ACCESS));
-        }
         // 유효성 체크
-        if (likesDto.getTargetId() == null || likesDto.getTargetType() == null) {
+        if (targetId == null || targetType == null) {
             return ResponseEntity.badRequest().body(Map.of("message","targetId와 targetType은 필수 값입니다."));
         }
 
-        log.info("LikesDto: accountId={}, targetId={}, targetType={}, isIncrease={}",
-                likesDto.getAccountId(), likesDto.getTargetId(), likesDto.getTargetType(), likesDto.isIncrease());
+        LikesDto likesDto = new LikesDto();
+        likesDto.setAccountId(accountId);
+        likesDto.setTargetId(targetId);
+        likesDto.setTargetType(targetType);
+        likesDto.setIncrease(isIncrease);
+
         likesService.adjustLike(likesDto);
         return ResponseEntity.ok(Map.of("message",likesDto.isIncrease() ? "좋아요를 눌렀습니다." : "좋아요를 취소했습니다."));
     }
