@@ -27,7 +27,7 @@ public class SecurityConfig {
                         //로그인
                         .requestMatchers("/api/account/login").permitAll()
                         //회원가입
-                        .requestMatchers("/api/account/join","/api/account/duplicate-check", "/api/auth/**").permitAll()
+                        .requestMatchers("/api/account/join","/api/account/duplicate-email","api/account/duplicate-name", "/api/auth/**").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(new JwtFilter(jwtUtil), SecurityContextPersistenceFilter.class) // JWT 필터 추가
                 .build();

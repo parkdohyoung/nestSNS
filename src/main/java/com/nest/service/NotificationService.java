@@ -2,7 +2,10 @@ package com.nest.service;
 
 import com.nest.common.util.ErrorMessages;
 import com.nest.domain.*;
+import com.nest.dto.NotificationDto;
+import com.nest.dto.mapper.NotificationMapper;
 import com.nest.repository.AccountRepository;
+import com.nest.repository.LikesRepository;
 import com.nest.repository.NotificationRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,10 +20,14 @@ public class NotificationService {
 
     private final AccountRepository accountRepository;
     private final NotificationRepository notificationRepository ;
+    private final NotificationMapper notificationMapper;
 
-    public NotificationService(AccountRepository accountRepository, NotificationRepository notificationRepository) {
+    public NotificationService(AccountRepository accountRepository,
+                               NotificationRepository notificationRepository,
+                               NotificationMapper notificationMapper) {
         this.accountRepository =  accountRepository;
         this.notificationRepository = notificationRepository;
+        this.notificationMapper = notificationMapper;
     }
 
     public List<String> extractUserMention(String message){
@@ -58,12 +65,14 @@ public class NotificationService {
             notification.setTargetType(targetType);
 
             notificationRepository.save(notification);
+
+
         }
     }
 
-    public Page<Notification> getUnreadNotification(Long accountId, int size, int page) {
+    public Page<NotificationDto> getUnreadNotification(Long accountId, int size, int page) {
         Page<Notification> notificationPage = notificationRepository.findByAccountIdAndCheckedIsFalse(accountId, PageRequest.of(page, size));
-        return notificationPage;
+        return notificationMapper.toNotificationDtoPage(notificationPage);
     }
 
     public void checkRead(Long notificationId) {

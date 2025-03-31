@@ -25,4 +25,5 @@ public class AccountDto {
     private LocalDateTime loginDateTime;
     private List<Post> post;
     private AccountStatus status ;
+
 }

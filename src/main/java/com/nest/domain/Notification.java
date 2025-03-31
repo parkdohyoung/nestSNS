@@ -18,7 +18,7 @@ public class Notification extends BasicEntity {
 
     @ManyToOne
     @JoinColumn(name = "sender_id" , nullable = false)
-    private Account Sender;
+    private Account sender;
 
     @ManyToOne
     @JoinColumn(name = "receiver_id" , nullable = false)
