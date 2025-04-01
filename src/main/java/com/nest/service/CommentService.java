@@ -6,6 +6,7 @@ import com.nest.domain.Comment;
 import com.nest.domain.Post;
 import com.nest.dto.CommentDto;
 import com.nest.dto.EditCommentDto;
+import com.nest.dto.NewCommentDto;
 import com.nest.dto.mapper.CommentMapper;
 import com.nest.repository.AccountRepository;
 import com.nest.repository.CommentRepository;
@@ -43,22 +44,22 @@ public class CommentService {
     }
 
     @Transactional
-    public CommentDto addComment(EditCommentDto editCommentDto){
+    public CommentDto addComment(Long accountId,NewCommentDto newCommentDto){
 
-        Account account = accountRepository.findById(editCommentDto.getAccountId())
+        Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
         Comment comment = new Comment() ;
         comment.setAccount(account);
-        comment.setCommentMessage(editCommentDto.getCommentMessage());
+        comment.setCommentMessage(newCommentDto.getCommentMessage());
 
-        Optional.ofNullable(editCommentDto.getPostId()).ifPresent(postId -> {
+        Optional.ofNullable(newCommentDto.getPostId()).ifPresent(postId -> {
             Post post = postRepository.findById(postId)
                     .orElseThrow(() -> new IllegalArgumentException(ErrorMessages.POST_NOT_FOUND));
             comment.setPost(post);
         });
 
-        Optional.ofNullable(editCommentDto.getParentCommentId()).ifPresent(parentCommentId -> {
+        Optional.ofNullable(newCommentDto.getParentCommentId()).ifPresent(parentCommentId -> {
             Comment parentComment = commentRepository.findById(parentCommentId)
                     .orElseThrow(() -> new IllegalArgumentException(ErrorMessages.COMMENT_NOT_FOUND));
             comment.setParentComment(parentComment);
@@ -74,13 +75,13 @@ public class CommentService {
     }
 
     @Transactional
-    public CommentDto editCommentMessage(EditCommentDto editCommentDto){
+    public CommentDto editCommentMessage(Long commentId, EditCommentDto editCommentDto){
         //댓글 검증
         if (editCommentDto.getCommentMessage() == null || editCommentDto.getCommentMessage().trim().isEmpty()) {
             throw new IllegalArgumentException("댓글 내용은 비어 있을 수 없습니다.");
         }
 
-        Comment comment = commentRepository.findById(editCommentDto.getId())
+        Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(()-> new IllegalArgumentException(ErrorMessages.COMMENT_NOT_FOUND));
 
         comment.setCommentMessage(editCommentDto.getCommentMessage());

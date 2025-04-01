@@ -2,6 +2,7 @@ package com.nest.controller;
 
 import com.nest.common.util.ErrorMessages;
 import com.nest.common.util.JwtUtil;
+import com.nest.domain.Account;
 import com.nest.dto.*;
 import com.nest.service.AccountService;
 import com.nest.service.FollowService;
@@ -49,9 +50,9 @@ public class AccountController {
         return ResponseEntity.ok(Map.of("exists", duplicate));
     }
     @PostMapping("/join")
-    public ResponseEntity<?> createAccount(@RequestBody VerifyAccountDto verifyAccountDto) {
+    public ResponseEntity<?> createAccount(@RequestBody JoinDto joinDto) {
         try {
-            accountService.createAccount(verifyAccountDto);
+            accountService.createAccount(joinDto);
             return ResponseEntity.ok(Map.of("message","회원가입 성공! 이메일을 확인하세요 "));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error",e.getMessage()));
@@ -59,13 +60,9 @@ public class AccountController {
     }
 
     @GetMapping("/edit")
-    public ResponseEntity<?> editForm(HttpServletRequest request, @RequestParam Long profileId ){
+    public ResponseEntity<?> editForm(HttpServletRequest request){
 
         Long accountId = (Long) request.getAttribute("accountId");
-
-        if(!accountId.equals(profileId)){
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error",ErrorMessages.UNAUTHORIZED_ACCESS));
-        }
 
         return ResponseEntity.ok(accountService.getProfileById(accountId));
     }
@@ -93,27 +90,22 @@ public class AccountController {
     }
 
 
-    @PostMapping("/withdraw")
-    public ResponseEntity<?> withdrawAccount(@RequestBody ProfileDto profileDto, HttpServletRequest request){
-        log.info("회원 탈퇴 요청, EMail : {}", profileDto.getEmail());
+    @DeleteMapping("/withdraw")
+    public ResponseEntity<?> withdrawAccount(@RequestBody HttpServletRequest request){
         Long accountId = (Long) request.getAttribute("accountId");
-
-        if(!accountId.equals(profileDto.getId())){
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", ErrorMessages.UNAUTHORIZED_ACCESS));
-        }
 
         //팔로우 취소
         followService.myFollowingList(accountId)
                 .forEach(follow -> {followService.unfollow(accountId,follow.getId());});
-        accountService.withDrawAccount(profileDto);
+        accountService.withDrawAccount(accountId);
         return ResponseEntity.ok(Map.of("message","감사합니다. 탈퇴가 완료 되었습니다."));
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDto loginDto ){
         accountService.loginAuthenticate(loginDto.getEmail(), loginDto.getPassword());
-        Long idByEmail = accountService.getIdByEmail(loginDto.getEmail());
-        String token = jwtUtil.generateToken(idByEmail, loginDto.getEmail());
+        Account accountByEmail = accountService.getAccountByEmail(loginDto.getEmail());
+        String token = jwtUtil.generateToken(accountByEmail.getId(), loginDto.getEmail(), accountByEmail.getName());
         return ResponseEntity.ok(Map.of("token",token));
     }
 

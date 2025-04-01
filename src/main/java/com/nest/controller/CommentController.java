@@ -4,6 +4,7 @@ import com.nest.common.util.ErrorMessages;
 import com.nest.domain.Comment;
 import com.nest.dto.CommentDto;
 import com.nest.dto.EditCommentDto;
+import com.nest.dto.NewCommentDto;
 import com.nest.dto.PostDto;
 import com.nest.dto.mapper.CommentMapper;
 import com.nest.repository.AccountRepository;
@@ -31,7 +32,7 @@ public class CommentController {
     private final CommentService commentService;
 
     @Autowired
-    public CommentController(CommentService commentService) {
+    public CommentController(CommentService commentService, HttpServletRequest request ) {
         this.commentService = commentService;
     }
     @GetMapping("/post")
@@ -42,21 +43,18 @@ public class CommentController {
     }
 
     @GetMapping("/comment")
-    public ResponseEntity<List<CommentDto>> getCommentsByParentId(@RequestParam Long commentId ){
+    public ResponseEntity<List<CommentDto>> getCommentsByParentId(@RequestParam Long commentId , HttpServletRequest request ){
         List<CommentDto> commentList = commentService.getCommentsByParentId(commentId);
 
         return ResponseEntity.ok(commentList);
     }
 
     @PostMapping("/new")
-    public ResponseEntity<?> newComment(@RequestBody EditCommentDto commentDto,
+    public ResponseEntity<?> newComment(@RequestBody NewCommentDto newCommentDto,
                                              HttpServletRequest request){
         Long accountId = (Long) request.getAttribute("accountId");
-        if(!accountId.equals(commentDto.getAccountId())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error",UNAUTHORIZED_ACCESS));
-        }
 
-        return ResponseEntity.ok(commentService.addComment(commentDto));
+        return ResponseEntity.ok(commentService.addComment(accountId, newCommentDto));
     }
 
     @GetMapping("/edit/{commentId}")
@@ -81,10 +79,10 @@ public class CommentController {
         if(!accountId.equals(commentDto.getAccountId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error",UNAUTHORIZED_ACCESS));
         }
-            return ResponseEntity.ok(commentService.editCommentMessage(editCommentDto));
+            return ResponseEntity.ok(commentService.editCommentMessage(commentId, editCommentDto));
     }
 
-    @DeleteMapping("/{commentId}")
+    @DeleteMapping("/delete/{commentId}")
     public ResponseEntity<?> deleteComment(@PathVariable Long commentId, HttpServletRequest request){
         Long accountId = (Long) request.getAttribute("accountId");
         CommentDto commentDto = commentService.getCommentById(commentId);

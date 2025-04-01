@@ -19,9 +19,10 @@ public class JwtUtil {
 
     }
 
-    public String generateToken(Long id, String email){
+    public String generateToken(Long id, String email, String name ){
         return Jwts.builder()
                 .claim("accountId",id)
+                .claim("name",name)
                 .setSubject(email)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis()+EXPIRATION_TIME))

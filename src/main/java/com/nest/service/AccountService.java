@@ -5,6 +5,7 @@ import com.nest.common.util.PasswordUtil;
 import com.nest.domain.Account;
 import com.nest.domain.AccountStatus;
 import com.nest.domain.LoginHistory;
+import com.nest.dto.JoinDto;
 import com.nest.dto.ProfileDto;
 import com.nest.dto.mapper.AccountMapper;
 import com.nest.repository.AccountRepository;
@@ -58,15 +59,15 @@ public class AccountService {
 
     //계정 검증 및 생성
     @Transactional
-    public void createAccount(VerifyAccountDto verifyAccountDto){
+    public void createAccount(JoinDto JoinDto){
         List<String> forbiddenPasswords = List.of("123456", "password", "qwerty", "abc123", "letmein", "1q2w3e4r", "123123","PassW0rd" ,"!Q2w3e4r");
 
         // 이메일 중복 체크
-        if(isDuplicateEmail(verifyAccountDto.getEmail())){
+        if(isDuplicateEmail(JoinDto.getEmail())){
             throw new IllegalArgumentException(ErrorMessages.DUPLICATE_EMAIL);
         }
         // 비밀번호 검증
-        String password = verifyAccountDto.getPassword();
+        String password = JoinDto.getPassword();
 
         if (password.length() < 8 ||
                 !password.matches(".*[A-Z].*") ||
@@ -81,7 +82,7 @@ public class AccountService {
         }
 
         //사용자 닉네임 검증
-        String name = verifyAccountDto.getName();
+        String name = JoinDto.getName();
         boolean exists = isDuplicateName(name);
         if(exists){
             throw new IllegalArgumentException(ErrorMessages.INVALID_NAME);
@@ -89,7 +90,7 @@ public class AccountService {
 
 
         // 계정 생성
-        Account account = new Account(verifyAccountDto.getEmail(), passwordUtil.encode(verifyAccountDto.getPassword()));
+        Account account = new Account(JoinDto.getEmail(), passwordUtil.encode(JoinDto.getPassword()));
         account.setVerificationToken(UUID.randomUUID().toString());
         account.setVerified(false);
         account.setName(name);
@@ -167,16 +168,17 @@ public class AccountService {
 
     //회원 탈퇴
     @Transactional
-    public void withDrawAccount(ProfileDto profileDto) {
+    public void withDrawAccount(Long accountId) {
 
-        log.info("계정 삭제 요청: {}", profileDto.getEmail());
+        Account account = getAccountById(accountId);
 
-        Account account = getAccountByEmail(profileDto.getEmail());
+        log.info("계정 삭제 요청: {}", account.getEmail());
+
         account.setName("탈퇴한 사용자");
         account.setVerified(false);
         account.setProfileMessage("");
         account.setProfileImgPath("");
-        account.setEmail("deleted_account_<"+profileDto.getEmail()+">");
+        account.setEmail("deleted_account_<"+account.getEmail()+">");
         accountRepository.save(account);
 
         account.setStatus(AccountStatus.DELETED);
@@ -203,7 +205,7 @@ public class AccountService {
         loginHistoryRepository.save(loginHistory);
     }
 
-    private Account getAccountByEmail(String email) {
+    public Account getAccountByEmail(String email) {
         return accountRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException(ErrorMessages.ACCOUNT_NOT_FOUND));
     }

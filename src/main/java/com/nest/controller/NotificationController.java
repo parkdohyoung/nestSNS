@@ -39,8 +39,8 @@ public class NotificationController {
     }
 
     //읽음 처리
-    @PostMapping("/{notificationId}/read")
-    public ResponseEntity<?> checkRead(@PathVariable Long notificationId, HttpServletRequest request){
+    @PostMapping("/read")
+    public ResponseEntity<?> checkRead(@RequestParam Long notificationId, HttpServletRequest request){
         Long accountId = (Long) request.getAttribute("accountId");
         Notification notification = notificationRepository.findById(notificationId).orElseThrow(() -> new IllegalArgumentException(ErrorMessages.KEYWORD_NOT_FOUND));
         Long targetId = notification.getTargetId();
@@ -52,4 +52,6 @@ public class NotificationController {
         notificationService.checkRead(notificationId);
         return ResponseEntity.ok(Map.of("message", "알림이 읽음 처리 되었습니다."));
     }
+
+
 }

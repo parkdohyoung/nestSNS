@@ -40,6 +40,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 Claims claims = jwtUtil.validateToken(token);
                     request.setAttribute("accountId",claims.get("accountId" ,Long.class));
                     request.setAttribute("email",claims.getSubject());
+                    request.setAttribute("name",claims.get("name" ,String.class));
 
                     String email = claims.getSubject();
                     Long accountId =claims.get("accountId", Long.class);

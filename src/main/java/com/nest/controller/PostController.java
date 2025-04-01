@@ -4,6 +4,7 @@ package com.nest.controller;
 import com.nest.common.util.ErrorMessages;
 import com.nest.domain.Post;
 import com.nest.dto.PostDto;
+import com.nest.dto.PostMessage;
 import com.nest.service.AccountService;
 import com.nest.service.CommentService;
 import com.nest.service.KeywordService;
@@ -72,10 +73,10 @@ public class PostController {
     }
 
     @PostMapping("/new")
-    public ResponseEntity<PostDto> newPost(@RequestBody PostDto postDto,
+    public ResponseEntity<PostDto> newPost(@RequestBody PostMessage postMessage,
                                            HttpServletRequest request) throws IOException {
         Long accountId = (Long) request.getAttribute("accountId");
-        return ResponseEntity.ok(postService.createPost(accountId, postDto.getMessage()));
+        return ResponseEntity.ok(postService.createPost(accountId, postMessage.getMessage()));
     }
 
 
@@ -94,8 +95,7 @@ public class PostController {
     @PostMapping("/edit/{postId}")
     public ResponseEntity<?> editPost(
             @PathVariable Long postId,
-            @RequestBody PostDto postDto,
-            @RequestParam(required = false) MultipartFile image,
+            @RequestBody PostMessage postMessage,
             HttpServletRequest request) {
 
         Long accountId = (Long) request.getAttribute("accountId");
@@ -105,7 +105,7 @@ public class PostController {
         if(!accountId.equals(originPostDto.getAccountId())){
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", ErrorMessages.UNAUTHORIZED_ACCESS));
         }else{
-            postService.updatePost(postId, accountId, postDto.getMessage());
+            postService.updatePost(postId, accountId, postMessage.getMessage());
             return ResponseEntity.ok(Map.of("message","포스트가 정상 저장 되었습니다."));
         }
     }
